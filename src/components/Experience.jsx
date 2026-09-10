@@ -73,7 +73,7 @@ export const Experience = () => {
       <Combo />
 
       <OrbitControls makeDefault />
-      <Environment preset="sunset" environmentIntensity={0.6} />
+      {/* <Environment preset="sunset" environmentIntensity={0.6} /> */}
       {/* {mode !== "immersive-ar" && ( */}
       {!passthrough && (
         <Gltf src="models/uploads_files_4381654_LightBlueSky.glb" />
