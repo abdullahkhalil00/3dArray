@@ -3,14 +3,20 @@ import { Button, Card, Defaults } from "@react-three/uikit-apfel";
 import { useXR } from "@react-three/xr";
 import { store } from "../App";
 import { useSong } from "../hooks/useSong";
-import { useState, useEffect } from "react"; // 1. useEffect import kiya
+import { useState, useEffect } from "react";
 
 import tickIcon from "../assets/icons8-tick-50.png";
 
 export function SecondUI(params) {
-  const { isLayerComplete, setIsLayerComplete } = params;
-  const loadSong = useSong((state) => state.loadSong);
-  const songs = useSong((state) => state.songs);
+  const {
+    isLayerComplete,
+    setIsLayerComplete,
+    isAtLeftRouter,
+    isAtCenterRouter,
+    isAtRightRouter,
+    isAtRightLaptop,
+  } = params;
+
   const mode = useXR((state) => state.mode);
   const session = useXR((state) => state.session);
   const songData = useSong((state) => state.songData);
@@ -25,38 +31,37 @@ export function SecondUI(params) {
     "Transport Layer",
     "Network Layer",
     "Data Link Layer",
-    "Physical Layer"
+    "Physical Layer",
   ];
 
   const [attributes, setAttributes] = useState([
     [
       { label: "Actual Data", selected: false },
       { label: "Application Layer Protocols", selected: false },
-      { label: "Binary Data", selected: false }
+      { label: "Binary Data", selected: false },
     ],
     [
       { label: "Reliable Data Transfer", selected: false },
-      { label: "Protocols TCP and UDP", selected: false }
+      { label: "Protocols TCP and UDP", selected: false },
     ],
     [
       { label: "Routing Data Packets", selected: false },
-      { label: "Protocols IP", selected: false }
+      { label: "Protocols IP", selected: false },
     ],
     [
       { label: "Reliable Communication", selected: false },
-      { label: "Protocols Ethernet and Wi-Fi", selected: false }
+      { label: "Protocols Ethernet and Wi-Fi", selected: false },
     ],
     [
       { label: "Transmitting Raw Binary Data", selected: false },
-      { label: "Physical Medium (Wires, Fiber, Wireless)", selected: false }
-    ]
+      { label: "Physical Medium (Wires, Fiber, Wireless)", selected: false },
+    ],
   ]);
 
   const isCurrentLayerComplete = attributes[dataLayerNumber].every(
     (attr) => attr.selected
   );
 
-  // 2. Parent state Sync: Jab bhi current layer status change ho, parent app ko update karein
   useEffect(() => {
     if (setIsLayerComplete) {
       setIsLayerComplete(isCurrentLayerComplete);
@@ -70,47 +75,101 @@ export function SecondUI(params) {
       updated[layerIdx] = [...updated[layerIdx]];
       updated[layerIdx][attrIdx] = {
         ...updated[layerIdx][attrIdx],
-        selected: !updated[layerIdx][attrIdx].selected
+        selected: !updated[layerIdx][attrIdx].selected,
       };
       return updated;
     });
   };
 
-  const nextLayer = () => {
-    if (!isCurrentLayerComplete) {
-      setErrorMessage("Please select ALL attributes to proceed to the next layer!");
-      return;
+  // Har router location ke mutabiq dynamic Routing Data Render
+  const renderRouterTableInfo = () => {
+    if (isAtLeftRouter) {
+      return (
+        <Container
+          flexDirection="column"
+          gap={6}
+          padding={12}
+          backgroundColor="rgba(0,0,0,0.2)"
+          borderRadius={12}
+        >
+          <Text fontSize={16} fontWeight="bold" textAlign="center" color="#00ff88">
+            Routing Table: Router 1 (Left)
+          </Text>
+          <Text fontSize={13} textAlign="center">
+            Path Found: Searching route to transfer data from Central Router to Right Router then Destination.
+          </Text>
+          <Text fontSize={12} textAlign="center" opacity={0.8}>
+            Next Hop: Central Router
+          </Text>
+        </Container>
+      );
     }
 
-    setErrorMessage("");
-    setDataLayerNumber((prev) => (prev + 1) % layers.length);
+    if (isAtCenterRouter) {
+      return (
+        <Container
+          flexDirection="column"
+          gap={6}
+          padding={12}
+          backgroundColor="rgba(0,0,0,0.2)"
+          borderRadius={12}
+        >
+          <Text fontSize={16} fontWeight="bold" textAlign="center" color="#ffaa00">
+            Routing Table: Central Router
+          </Text>
+          <Text fontSize={13} textAlign="center">
+            Central Router Processing: Target path verified. Forwarding packet to Right Router.
+          </Text>
+          <Text fontSize={12} textAlign="center" opacity={0.8}>
+            Next Hop: Right Router
+          </Text>
+        </Container>
+      );
+    }
+
+    if (isAtRightRouter) {
+      return (
+        <Container
+          flexDirection="column"
+          gap={6}
+          padding={12}
+          backgroundColor="rgba(0,0,0,0.2)"
+          borderRadius={12}
+        >
+          <Text fontSize={16} fontWeight="bold" textAlign="center" color="#00aaff">
+            Routing Table: Right Router
+          </Text>
+          <Text fontSize={13} textAlign="center">
+            Destination Router Reached: Forwarding data packet directly to target laptop.
+          </Text>
+          <Text fontSize={12} textAlign="center" opacity={0.8}>
+            Next Hop: Destination Laptop
+          </Text>
+        </Container>
+      );
+    }
+
+    if (isAtRightLaptop) {
+      return (
+        <Container
+          flexDirection="column"
+          gap={6}
+          padding={12}
+          backgroundColor="rgba(10, 12, 10, 0.15)"
+          borderRadius={12}
+        >
+          <Text fontSize={16} fontWeight="bold" textAlign="center" color="#f7f7f7ff">
+            Packet Delivered!
+          </Text>
+          <Text fontSize={13} textAlign="center">
+            Data successfully transferred through all network routers to the final destination.
+          </Text>
+        </Container>
+      );
+    }
+
+    return null;
   };
-
-  const dataLayerDescription = [
-    `Application Layer Consist of three things:
-
-1. Application Layer Protocols (HTTP, FTP, SMTP, DNS, DHCP, SNMP, Telnet, SSH, POP3, IMAP)
-2. Actual Data being sent and received
-3. Binary Data (1s and 0s) that is sent over the network.
-
-The Application Layer is responsible for providing services to the user and enabling communication between applications on different devices. It is the topmost layer of the OSI model and interacts directly with the end-user.`,
-
-    `Transport Layer is responsible for providing reliable data transfer between two devices on a network. It ensures that data is delivered in the correct order and without errors.
-
-The Transport Layer uses protocols such as TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) to manage the flow of data between applications on different devices. It also provides error detection and correction mechanisms to ensure that data is transmitted accurately.`,
-
-    `Network Layer is responsible for routing data packets between devices on different networks. It determines the best path for data to travel from the source device to the destination device.
-
-The Network Layer uses protocols such as IP (Internet Protocol) to address and route data packets. It also handles fragmentation and reassembly of data packets to ensure that they can be transmitted across different types of networks.`,
-
-    `Data Link Layer is responsible for providing reliable communication between two devices on the same network. It ensures that data is transmitted without errors and in the correct order.
-
-The Data Link Layer uses protocols such as Ethernet and Wi-Fi to manage the flow of data between devices on a local area network (LAN). It also provides error detection and correction mechanisms to ensure that data is transmitted accurately.`,
-
-    `Physical Layer is responsible for transmitting raw binary data over a physical medium, such as copper wires, fiber optic cables, or wireless signals.
-
-It defines the electrical, mechanical, and procedural aspects of data transmission, including voltage levels.`
-  ];
 
   if (songData) {
     return null;
@@ -136,42 +195,31 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
             <Container
               flexDirection="column"
               alignItems="stretch"
-              gap={12}
+              gap={16}
               width="100%"
             >
               {/* Header Title */}
-              <Container flexDirection="row" justifyContent="center" alignItems="center" gap={8}>
+              <Container
+                flexDirection="row"
+                justifyContent="center"
+                alignItems="center"
+                gap={8}
+              >
                 <Text fontSize={22} textAlign="center" fontWeight="bold">
-                  {/* {layers[dataLayerNumber]} */}
-                  Second UI
+                  Network Routing Status (See Ethernet Header on Devices)
                 </Text>
                 {isCurrentLayerComplete && (
                   <Image src={tickIcon} width={20} height={20} />
                 )}
               </Container>
 
-              {/* Paragraphs */}
-              <Container flexDirection="column" gap={8} width="100%">
-                {dataLayerDescription[dataLayerNumber]
-                  .split("\n")
-                  .map((paragraph, index) =>
-                    paragraph.trim() === "" ? null : (
-                      <Text
-                        key={index}
-                        fontSize={14}
-                        lineHeight={14}
-                        textAlign="left"
-                      >
-                        {paragraph}
-                      </Text>
-                    )
-                  )}
-              </Container>
+              {/* Routing Table Info Component */}
+              {renderRouterTableInfo()}
 
-              {/* Attributes Options */}
-              <Container flexDirection="column" gap={8} marginTop={12}>
+              {/* Attributes Selection */}
+              <Container flexDirection="column" gap={8} marginTop={8}>
                 <Text fontSize={14} fontWeight="bold">
-                  Select attributes of {layers[dataLayerNumber]}:
+                  Containt all your data and meta data
                 </Text>
 
                 <Container flexDirection="row" gap={8} flexWrap="wrap">
@@ -182,12 +230,7 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
                       size="sm"
                       onClick={() => toggleAttribute(dataLayerNumber, attrIdx)}
                     >
-                      <Container flexDirection="row" alignItems="center" gap={6}>
-                        {attr.selected && (
-                          <Image src={tickIcon} width={14} height={14} />
-                        )}
-                        <Text>{attr.label}</Text>
-                      </Container>
+                      
                     </Button>
                   ))}
                 </Container>
@@ -199,26 +242,6 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
                   {errorMessage}
                 </Text>
               )}
-
-              {/* Next Button */}
-              <Button
-                variant={isCurrentLayerComplete ? "solid" : "rect"}
-                size="sm"
-                platter
-                marginTop={8}
-                onClick={nextLayer}
-              >
-                <Container flexDirection="row" alignItems="center" gap={6}>
-                  {isCurrentLayerComplete && (
-                    <Image src={tickIcon} width={16} height={16} />
-                  )}
-                  <Text>
-                    {isCurrentLayerComplete
-                      ? "Next Layer"
-                      : "Next Layer (Select All Attributes)"}
-                  </Text>
-                </Container>
-              </Button>
 
               {/* XR Controls */}
               <Container
