@@ -1,3 +1,4 @@
+import { useState } from "react"; // 1. useState import add kiya
 import { Bvh, Float, Stats } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { createXRStore, XR, XROrigin } from "@react-three/xr";
@@ -7,7 +8,7 @@ import { Experience } from "./components/Experience";
 import { ScoreBoard } from "./components/ScoreBoard";
 import { UI } from "./components/UI";
 import { NOTES_COLORS } from "./hooks/useSong";
-
+import { SecondUI } from "./components/secondUI";
 export const store = createXRStore({
   controller: DrumStick,
   meshDetection: false,
@@ -15,6 +16,8 @@ export const store = createXRStore({
 });
 
 function App() {
+  const [isLayerComplete, setIsLayerComplete] = useState(true);
+
   return (
     <>
       <div className="controls">
@@ -29,7 +32,7 @@ function App() {
         </div>
       </div>
       <Canvas
-        shadows
+        // shadows
         camera={{
           position: window.innerWidth < 1024 ? [0, 0.8, 3] : [0, 0.5, 1],
           fov: 70,
@@ -40,7 +43,14 @@ function App() {
         <XR store={store}>
           <group position-y={1} position-z={-5}>
             <Float rotationIntensity={0.4} speed={1.5}>
-              <UI />
+              {/* 2. Props ko properly pass kiya */}
+              {
+                isLayerComplete && <UI isLayerComplete={isLayerComplete} setIsLayerComplete={setIsLayerComplete} />
+              }
+              {
+                !isLayerComplete && <SecondUI isLayerComplete={isLayerComplete} setIsLayerComplete={setIsLayerComplete} />
+              }
+
             </Float>
           </group>
           <group position-y={2} position-z={-3} rotation-x={degToRad(20)}>
@@ -48,7 +58,7 @@ function App() {
           </group>
           <group position-y={-1}>
             <Bvh firstHitOnly>
-              <Experience />
+              <Experience isLayerComplete={isLayerComplete} />
             </Bvh>
             <XROrigin position-z={0.2} />
           </group>

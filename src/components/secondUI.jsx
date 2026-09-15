@@ -3,11 +3,11 @@ import { Button, Card, Defaults } from "@react-three/uikit-apfel";
 import { useXR } from "@react-three/xr";
 import { store } from "../App";
 import { useSong } from "../hooks/useSong";
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react"; // 1. useEffect import kiya
 
 import tickIcon from "../assets/icons8-tick-50.png";
 
-export function UI(params) {
+export function SecondUI(params) {
   const { isLayerComplete, setIsLayerComplete } = params;
   const loadSong = useSong((state) => state.loadSong);
   const songs = useSong((state) => state.songs);
@@ -56,7 +56,12 @@ export function UI(params) {
     (attr) => attr.selected
   );
 
-  
+  // 2. Parent state Sync: Jab bhi current layer status change ho, parent app ko update karein
+  useEffect(() => {
+    if (setIsLayerComplete) {
+      setIsLayerComplete(isCurrentLayerComplete);
+    }
+  }, [isCurrentLayerComplete, setIsLayerComplete]);
 
   const toggleAttribute = (layerIdx, attrIdx) => {
     setErrorMessage("");
@@ -78,20 +83,7 @@ export function UI(params) {
     }
 
     setErrorMessage("");
-
-    // Jab 5th layer (index 4) complete ho jaaye aur user next click kare
-    if (dataLayerNumber === layers.length - 1) {
-      if (setIsLayerComplete) {
-        setIsLayerComplete(false); // Paanchon layer poori hone par FALSE set ho jayega
-      }
-      
-      // Attributes ko dobara reset karna ho toh:
-      // setDataLayerNumber(0);
-      return;
-    }
-
-    // Agli layer par jaane ke liye
-    setDataLayerNumber((prev) => prev + 1);
+    setDataLayerNumber((prev) => (prev + 1) % layers.length);
   };
 
   const dataLayerDescription = [
@@ -150,7 +142,8 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
               {/* Header Title */}
               <Container flexDirection="row" justifyContent="center" alignItems="center" gap={8}>
                 <Text fontSize={22} textAlign="center" fontWeight="bold">
-                  {layers[dataLayerNumber]}
+                  {/* {layers[dataLayerNumber]} */}
+                  Second UI
                 </Text>
                 {isCurrentLayerComplete && (
                   <Image src={tickIcon} width={20} height={20} />
@@ -220,9 +213,7 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
                     <Image src={tickIcon} width={16} height={16} />
                   )}
                   <Text>
-                    {dataLayerNumber === layers.length - 1
-                      ? "Finish All Layers"
-                      : isCurrentLayerComplete
+                    {isCurrentLayerComplete
                       ? "Next Layer"
                       : "Next Layer (Select All Attributes)"}
                   </Text>
