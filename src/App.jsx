@@ -114,13 +114,13 @@ function App() {
     <>
       <div className="controls">
         <div className="controls__key" style={{ color: NOTES_COLORS.Middle }}>
-          S
-        </div>
-        <div className="controls__key" style={{ color: NOTES_COLORS.Side }}>
           D
         </div>
+        <div className="controls__key" style={{ color: NOTES_COLORS.Side }}>
+          T
+        </div>
         <div className="controls__key" style={{ color: NOTES_COLORS.Crash }}>
-          F
+          S
         </div>
       </div>
       <Canvas
