@@ -3,12 +3,20 @@ import { Button, Card, Defaults } from "@react-three/uikit-apfel";
 import { useXR } from "@react-three/xr";
 import { store } from "../App";
 import { useSong } from "../hooks/useSong";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 import tickIcon from "../assets/icons8-tick-50.png";
 
 export function UI(params) {
-  const { isLayerComplete, setIsLayerComplete } = params;
+  const {
+    isLayerComplete,
+    setIsLayerComplete,
+    onLayersComplete,
+    setIsTCP,
+    isTCP,
+    round,
+    setRoound,
+  } = params;
   const loadSong = useSong((state) => state.loadSong);
   const songs = useSong((state) => state.songs);
   const mode = useXR((state) => state.mode);
@@ -17,15 +25,15 @@ export function UI(params) {
   const passthrough = useSong((state) => state.passthrough);
   const setPassthrough = useSong((state) => state.setPassthrough);
 
-  const [dataLayerNumber, setDataLayerNumber] = useState(0);
+  const [dataLayerNumber, setDataLayerNumber] = useState(-1);
   const [errorMessage, setErrorMessage] = useState("");
 
   const layers = [
-    "Application Layer",
-    "Transport Layer",
-    "Network Layer",
-    "Data Link Layer",
-    "Physical Layer"
+    "Create Application Layer",
+    "Create Transport Layer",
+    "Create Network Layer",
+    "Create Data Link Layer",
+    "Create Physical Layer"
   ];
 
   const [attributes, setAttributes] = useState([
@@ -35,8 +43,8 @@ export function UI(params) {
       { label: "Binary Data", selected: false }
     ],
     [
-      { label: "Reliable Data Transfer", selected: false },
-      { label: "Protocols TCP and UDP", selected: false }
+      { label: "TCP", selected: false },
+      { label: "UDP", selected: false }
     ],
     [
       { label: "Routing Data Packets", selected: false },
@@ -52,49 +60,72 @@ export function UI(params) {
     ]
   ]);
 
-  const isCurrentLayerComplete = attributes[dataLayerNumber].every(
-    (attr) => attr.selected
-  );
-
-  
+  // Check completion: For Transport Layer (index 1), at least one protocol must be selected.
+  // For all other layers, ALL attributes must be selected.
+  const isCurrentLayerComplete =
+    dataLayerNumber >= 0 &&
+    (dataLayerNumber === 1
+      ? attributes[1]?.some((attr) => attr.selected) ?? false
+      : attributes[dataLayerNumber]?.every((attr) => attr.selected) ?? false);
 
   const toggleAttribute = (layerIdx, attrIdx) => {
+    if (layerIdx < 0) return;
     setErrorMessage("");
+
     setAttributes((prev) => {
       const updated = [...prev];
-      updated[layerIdx] = [...updated[layerIdx]];
-      updated[layerIdx][attrIdx] = {
-        ...updated[layerIdx][attrIdx],
-        selected: !updated[layerIdx][attrIdx].selected
-      };
+
+      // Special single-choice handling for Transport Layer (index 1)
+      if (layerIdx === 1) {
+        const selectedLabel = updated[1][attrIdx].label.trim();
+
+        // Update isTCP state based on choice
+        if (selectedLabel === "TCP") {
+          setIsTCP?.(true);
+        } else if (selectedLabel === "UDP") {
+          setIsTCP?.(false);
+        }
+
+        updated[1] = updated[1].map((attr, idx) => ({
+          ...attr,
+          selected: idx === attrIdx
+        }));
+      } else {
+        // Multi-select for other layers
+        updated[layerIdx] = [...updated[layerIdx]];
+        updated[layerIdx][attrIdx] = {
+          ...updated[layerIdx][attrIdx],
+          selected: !updated[layerIdx][attrIdx].selected
+        };
+      }
+
       return updated;
     });
   };
 
   const nextLayer = () => {
-    if (!isCurrentLayerComplete) {
-      setErrorMessage("Please select ALL attributes to proceed to the next layer!");
+    if (dataLayerNumber >= 0 && !isCurrentLayerComplete) {
+      if (dataLayerNumber === 1) {
+        setErrorMessage("Please select either TCP or UDP to proceed!");
+      } else {
+        setErrorMessage("Please select ALL attributes to proceed to the next layer!");
+      }
       return;
     }
 
     setErrorMessage("");
 
-    // Jab 5th layer (index 4) complete ho jaaye aur user next click kare
     if (dataLayerNumber === layers.length - 1) {
-      if (setIsLayerComplete) {
-        setIsLayerComplete(false); // Paanchon layer poori hone par FALSE set ho jayega
-      }
-      
-      // Attributes ko dobara reset karna ho toh:
-      // setDataLayerNumber(0);
+      if (setIsLayerComplete) setIsLayerComplete(false);
+      if (onLayersComplete) onLayersComplete();
       return;
     }
 
-    // Agli layer par jaane ke liye
     setDataLayerNumber((prev) => prev + 1);
   };
 
   const dataLayerDescription = [
+    `We are going to send message from left laptop to right laptop(look around) . You will create message laeyer by layer and transmit it to final destination. Your messages is Hello Server. Click next to send`,
     `Application Layer Consist of three things:
 
 1. Application Layer Protocols (HTTP, FTP, SMTP, DNS, DHCP, SNMP, Telnet, SSH, POP3, IMAP)
@@ -105,7 +136,7 @@ The Application Layer is responsible for providing services to the user and enab
 
     `Transport Layer is responsible for providing reliable data transfer between two devices on a network. It ensures that data is delivered in the correct order and without errors.
 
-The Transport Layer uses protocols such as TCP (Transmission Control Protocol) and UDP (User Datagram Protocol) to manage the flow of data between applications on different devices. It also provides error detection and correction mechanisms to ensure that data is transmitted accurately.`,
+The Transport Layer uses protocols such as TCP (Transmission Control Protocol) it retransmit data if packets are lost and UDP (User Datagram Protocol) does not transmit data if packets are lost to manage the flow of data between applications on different devices. It also provides error detection and correction mechanisms to ensure that data is transmitted accurately.Choose which you want to use for your message transmission. TCP is reliable but slower, while UDP is faster but less reliable. Click next to send your message using the selected protocol.`,
 
     `Network Layer is responsible for routing data packets between devices on different networks. It determines the best path for data to travel from the source device to the destination device.
 
@@ -123,6 +154,10 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
   if (songData) {
     return null;
   }
+
+  const currentDescription = dataLayerDescription[dataLayerNumber + 1] ?? "";
+  const currentLayerName = layers[dataLayerNumber] ?? "Welcome / Intro";
+  const currentAttributes = attributes[dataLayerNumber] ?? [];
 
   return (
     <Defaults>
@@ -150,7 +185,7 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
               {/* Header Title */}
               <Container flexDirection="row" justifyContent="center" alignItems="center" gap={8}>
                 <Text fontSize={22} textAlign="center" fontWeight="bold">
-                  {layers[dataLayerNumber]}
+                  {currentLayerName}
                 </Text>
                 {isCurrentLayerComplete && (
                   <Image src={tickIcon} width={20} height={20} />
@@ -159,7 +194,7 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
 
               {/* Paragraphs */}
               <Container flexDirection="column" gap={8} width="100%">
-                {dataLayerDescription[dataLayerNumber]
+                {currentDescription
                   .split("\n")
                   .map((paragraph, index) =>
                     paragraph.trim() === "" ? null : (
@@ -176,29 +211,33 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
               </Container>
 
               {/* Attributes Options */}
-              <Container flexDirection="column" gap={8} marginTop={12}>
-                <Text fontSize={14} fontWeight="bold">
-                  Select attributes of {layers[dataLayerNumber]}:
-                </Text>
+              {dataLayerNumber >= 0 && (
+                <Container flexDirection="column" gap={8} marginTop={12}>
+                  <Text fontSize={14} fontWeight="bold">
+                    {dataLayerNumber === 1
+                      ? "Select one protocol for Transport Layer:"
+                      : `Select attributes of ${currentLayerName}:`}
+                  </Text>
 
-                <Container flexDirection="row" gap={8} flexWrap="wrap">
-                  {attributes[dataLayerNumber].map((attr, attrIdx) => (
-                    <Button
-                      key={attrIdx}
-                      variant={attr.selected ? "solid" : "rect"}
-                      size="sm"
-                      onClick={() => toggleAttribute(dataLayerNumber, attrIdx)}
-                    >
-                      <Container flexDirection="row" alignItems="center" gap={6}>
-                        {attr.selected && (
-                          <Image src={tickIcon} width={14} height={14} />
-                        )}
-                        <Text>{attr.label}</Text>
-                      </Container>
-                    </Button>
-                  ))}
+                  <Container flexDirection="row" gap={8} flexWrap="wrap">
+                    {currentAttributes.map((attr, attrIdx) => (
+                      <Button
+                        key={attrIdx}
+                        variant={attr.selected ? "solid" : "rect"}
+                        size="sm"
+                        onClick={() => toggleAttribute(dataLayerNumber, attrIdx)}
+                      >
+                        <Container flexDirection="row" alignItems="center" gap={6}>
+                          {attr.selected && (
+                            <Image src={tickIcon} width={14} height={14} />
+                          )}
+                          <Text>{attr.label}</Text>
+                        </Container>
+                      </Button>
+                    ))}
+                  </Container>
                 </Container>
-              </Container>
+              )}
 
               {/* Error Message */}
               {errorMessage !== "" && (
@@ -209,7 +248,7 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
 
               {/* Next Button */}
               <Button
-                variant={isCurrentLayerComplete ? "solid" : "rect"}
+                variant={isCurrentLayerComplete || dataLayerNumber === -1 ? "solid" : "rect"}
                 size="sm"
                 platter
                 marginTop={8}
@@ -220,10 +259,14 @@ It defines the electrical, mechanical, and procedural aspects of data transmissi
                     <Image src={tickIcon} width={16} height={16} />
                   )}
                   <Text>
-                    {dataLayerNumber === layers.length - 1
+                    {dataLayerNumber === -1
+                      ? "Start Simulation"
+                      : dataLayerNumber === layers.length - 1
                       ? "Finish All Layers"
                       : isCurrentLayerComplete
                       ? "Next Layer"
+                      : dataLayerNumber === 1
+                      ? "Next Layer (Select Protocol)"
                       : "Next Layer (Select All Attributes)"}
                   </Text>
                 </Container>

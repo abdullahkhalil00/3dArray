@@ -1,17 +1,18 @@
 import { Container, Root, Text } from "@react-three/uikit";
 import { Card, Button, Defaults } from "@react-three/uikit-apfel";
 
-
 export function DragableUI({
   position = [0, 0, 0],
   scale = 1,
   rotation = [0, 0, 0],
   onMoveClick,
   currentStep = 0,
+  round = 0,
+  isTCP = true,
 }) {
- 
+  // Center Router (Step 2) par round === 0 hone se block condition apply hogi
+  const isBlocked = currentStep === 2 && round === 0;
 
-  // Dynamic Button Label based on current step
   const getButtonText = () => {
     switch (currentStep) {
       case 0:
@@ -19,6 +20,9 @@ export function DragableUI({
       case 1:
         return "Move to Center Router";
       case 2:
+        if (isBlocked) {
+          return isTCP ? "Packet Lost (Retransmit Required)" : "Packet Lost (Reset Required)";
+        }
         return "Move to Right Router";
       case 3:
         return "Move to Right Laptop";
@@ -47,9 +51,13 @@ export function DragableUI({
                   </Text>
                 </Container>
                 
-                {/* Action Move Button */}
-                <Button onClick={onMoveClick} padding={12} marginTop={8}>
-                  <Text fontSize={14} textAlign="center">
+                <Button 
+                  onClick={isBlocked ? null : onMoveClick} 
+                  padding={12} 
+                  marginTop={8}
+                  variant={isBlocked ? "rect" : "solid"}
+                >
+                  <Text fontSize={14} textAlign="center" color={isBlocked ? "#ff4444" : "#ffffff"}>
                     {getButtonText()}
                   </Text>
                 </Button>
