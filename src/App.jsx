@@ -23,32 +23,46 @@ function App() {
   const [isAtRightRouter, setIsAtRightRouter] = useState(false);
   const [isAtRightLaptop, setIsAtRightLaptop] = useState(false);
   const [isTCP, setIsTCP] = useState(false);
+  const [protocol, setProtocol] = useState("UDP");
   const [round, setRound] = useState(0);
 
-  // TCP Retransmit: packet ko left laptop se dobara start karne ke liye
+  // -1 = inactive (normal flow)
+  // 0-4 = UDP OSI layer walkthrough steps inside SecondUI
+  // 5   = walkthrough done, trigger packet animation
+  const [udpRetransmitStep, setUdpRetransmitStep] = useState(-1);
+
+  // Reset all router/laptop position flags and move packet back to Left Laptop
+  const resetPacketPositions = () => {
+    setIsAtLeftRouter(false);
+    setIsAtCenterRouter(false);
+    setIsAtRightRouter(false);
+    setIsAtRightLaptop(false);
+  };
+
+  // TCP Retransmit: packet restarts from Left Laptop (stays in SecondUI, round → 1)
   const handleResetToLeftLaptop = () => {
-    setIsAtLeftRouter(false);
-    setIsAtCenterRouter(false);
-    setIsAtRightRouter(false);
-    setIsAtRightLaptop(false);
+    resetPacketPositions();
+    setRound(1);
   };
 
-  // UDP Retransmit: pehli UI (layers) par wapas, round 2 par successful transfer
+  // UDP Retransmit: stay in SecondUI, show OSI walkthrough, round → 2
   const handleFullReset = () => {
-    setIsAtLeftRouter(false);
-    setIsAtCenterRouter(false);
-    setIsAtRightRouter(false);
-    setIsAtRightLaptop(false);
-    setIsLayerComplete(true);
+    resetPacketPositions();
     setRound(2);
+    setUdpRetransmitStep(0); // begin UDP OSI layer walkthrough inside SecondUI
   };
 
+  // Called when UDP OSI walkthrough is done → start packet animation
+  const handleUdpLayersComplete = () => {
+    setUdpRetransmitStep(-1); // deactivate walkthrough
+    // packet position flags are already reset, so Experience will start from step 0
+  };
+
+  // Called when first UI layers are complete
   const handleLayersComplete = () => {
-    setIsAtLeftRouter(false);
-    setIsAtCenterRouter(false);
-    setIsAtRightRouter(false);
-    setIsAtRightLaptop(false);
+    resetPacketPositions();
     setIsLayerComplete(false);
+    setUdpRetransmitStep(-1);
   };
 
   return (
@@ -82,6 +96,8 @@ function App() {
                   onLayersComplete={handleLayersComplete}
                   isTCP={isTCP}
                   setIsTCP={setIsTCP}
+                  protocol={protocol}
+                  setProtocol={setProtocol}
                   round={round}
                   setRound={setRound}
                 />
@@ -96,10 +112,14 @@ function App() {
                   isAtRightLaptop={isAtRightLaptop}
                   isTCP={isTCP}
                   setIsTCP={setIsTCP}
+                  protocol={protocol}
                   round={round}
                   setRound={setRound}
                   resetToLeftLaptop={handleResetToLeftLaptop}
                   fullResetToStart={handleFullReset}
+                  udpRetransmitStep={udpRetransmitStep}
+                  setUdpRetransmitStep={setUdpRetransmitStep}
+                  onUdpLayersComplete={handleUdpLayersComplete}
                 />
               )}
             </Float>
@@ -120,7 +140,9 @@ function App() {
                 setIsAtRightRouter={setIsAtRightRouter}
                 setIsAtRightLaptop={setIsAtRightLaptop}
                 isTCP={isTCP}
+                protocol={protocol}
                 round={round}
+                udpRetransmitStep={udpRetransmitStep}
               />
             </Bvh>
             <XROrigin position-z={0.2} />

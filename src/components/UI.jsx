@@ -14,6 +14,7 @@ export function UI(params) {
     onLayersComplete,
     setIsTCP,
     isTCP,
+    setProtocol,
     round,
     setRoound,
   } = params;
@@ -72,20 +73,17 @@ export function UI(params) {
     if (layerIdx < 0) return;
     setErrorMessage("");
 
+    if (layerIdx === 1) {
+      const selectedLabel = attributes[1][attrIdx].label.trim();
+      setProtocol?.(selectedLabel);
+      setIsTCP?.(selectedLabel === "TCP");
+    }
+
     setAttributes((prev) => {
       const updated = [...prev];
 
       // Special single-choice handling for Transport Layer (index 1)
       if (layerIdx === 1) {
-        const selectedLabel = updated[1][attrIdx].label.trim();
-
-        // Update isTCP state based on choice
-        if (selectedLabel === "TCP") {
-          setIsTCP?.(true);
-        } else if (selectedLabel === "UDP") {
-          setIsTCP?.(false);
-        }
-
         updated[1] = updated[1].map((attr, idx) => ({
           ...attr,
           selected: idx === attrIdx
@@ -116,6 +114,9 @@ export function UI(params) {
     setErrorMessage("");
 
     if (dataLayerNumber === layers.length - 1) {
+      const selectedProtocol = attributes[1]?.find((attr) => attr.selected)?.label;
+      setProtocol?.(selectedProtocol);
+      setIsTCP?.(selectedProtocol === "TCP");
       if (setIsLayerComplete) setIsLayerComplete(false);
       if (onLayersComplete) onLayersComplete();
       return;
