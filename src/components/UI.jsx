@@ -3,7 +3,7 @@ import { Button, Card, Defaults } from "@react-three/uikit-apfel";
 import { useXR } from "@react-three/xr";
 import { store } from "../App";
 import { useSong } from "../hooks/useSong";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import tickIcon from "../assets/icons8-tick-50.png";
 
@@ -37,7 +37,7 @@ export function UI(params) {
     "Create Physical Layer"
   ];
 
-  const [attributes, setAttributes] = useState([
+  const freshAttributes = [
     [
       { label: "Actual Data", selected: false },
       { label: "Application Layer Protocols", selected: false },
@@ -59,7 +59,18 @@ export function UI(params) {
       { label: "Transmitting Raw Binary Data", selected: false },
       { label: "Physical Medium (Wires, Fiber, Wireless)", selected: false }
     ]
-  ]);
+  ];
+
+  const [attributes, setAttributes] = useState(freshAttributes);
+
+  // Every time this UI becomes visible (round changes or component mounts),
+  // reset back to the Welcome/Intro screen so we always start fresh.
+  useEffect(() => {
+    setDataLayerNumber(-1);
+    setErrorMessage("");
+    setAttributes(freshAttributes);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [round]);
 
   // Check completion: For Transport Layer (index 1), at least one protocol must be selected.
   // For all other layers, ALL attributes must be selected.
