@@ -148,8 +148,8 @@ export function SecondUI(params) {
                         idx < udpRetransmitStep
                           ? "#00ff88"
                           : idx === udpRetransmitStep
-                          ? "#00aaff"
-                          : "#444444"
+                            ? "#00aaff"
+                            : "#444444"
                       }
                     />
                   ))}
@@ -333,7 +333,7 @@ export function SecondUI(params) {
       return (
         <Container
           flexDirection="column"
-          gap={6}
+          gap={8}
           padding={12}
           backgroundColor="rgba(0, 80, 0, 0.3)"
           borderRadius={12}
@@ -347,6 +347,14 @@ export function SecondUI(params) {
           <Text fontSize={12} textAlign="center" opacity={0.8}>
             Protocol used: {protocol}
           </Text>
+          <Button
+            variant="solid"
+            size="sm"
+            marginTop={8}
+            onClick={() => window.location.reload()}
+          >
+            <Text>Start Over</Text>
+          </Button>
         </Container>
       );
     }
@@ -374,7 +382,7 @@ export function SecondUI(params) {
             <Container flexDirection="column" alignItems="stretch" gap={16} width="100%">
               <Container flexDirection="row" justifyContent="center" alignItems="center" gap={8}>
                 <Text fontSize={22} textAlign="center" fontWeight="bold">
-                  Network Routing Status
+                  Network Routing Status (Look on left router)
                 </Text>
               </Container>
 
