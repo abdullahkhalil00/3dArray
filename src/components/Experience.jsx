@@ -29,11 +29,11 @@ export const Experience = ({
   // Steps: 0=Left Laptop, 1=Left Router, 2=Center Router, 3=Right Router, 4=Right Laptop
   const [currentStep, setCurrentStep] = useState(0);
 
-  const laptopLeftPos   = [-3, 1.8, 0.6];
-  const routerLeftPos   = [-2, 1.2, -2.5];
-  const routerCenterPos = [0,  1.2, -2.5];
-  const routerRightPos  = [2,  1.2, -2.5];
-  const laptopRightPos  = [3,  1.8, 0];
+  const laptopLeftPos = [-3, 1.8, 0.6];
+  const routerLeftPos = [-2, 1.2, -2.5];
+  const routerCenterPos = [0, 1.2, -2.5];
+  const routerRightPos = [2, 1.2, -2.5];
+  const laptopRightPos = [3, 1.8, 0];
 
   const targetPositions = [
     laptopLeftPos,
@@ -76,11 +76,11 @@ export const Experience = ({
   ]);
 
   const getHeaderRotation = () => {
-    if (isAtLeftRouter)   return [0,  Math.PI / 4,        0];
-    if (isAtCenterRouter) return [0,  Math.PI / 10,       0];
-    if (isAtRightRouter)  return [0,  Math.PI / 20,       0];
-    if (isAtRightLaptop)  return [0, -Math.PI / 2,        0];
-    return                       [0,  Math.PI / 2,        0];
+    if (isAtLeftRouter) return [0, Math.PI / 4, 0];
+    if (isAtCenterRouter) return [0, Math.PI / 10, 0];
+    if (isAtRightRouter) return [0, Math.PI / 20, 0];
+    if (isAtRightLaptop) return [0, -Math.PI / 2, 0];
+    return [0, Math.PI / 2, 0];
   };
 
   // Smooth packet animation
@@ -112,9 +112,9 @@ export const Experience = ({
       if (event.repeat) return;
       switch (event.key) {
         case "s": playNote("Middle"); break;
-        case "d": playNote("Side");   break;
-        case "f": playNote("Crash");  break;
-        default:  break;
+        case "d": playNote("Side"); break;
+        case "f": playNote("Crash"); break;
+        default: break;
       }
     };
     document.addEventListener("keypress", onKeyPress);
@@ -134,16 +134,16 @@ export const Experience = ({
   // (udpRetransmitStep >= 0 means walkthrough is active, -1 = inactive)
   const isUdpWalkthroughActive = udpRetransmitStep >= 0;
 
-  const rawLaptopRightPos  = [3,  0.2, 0];
-  const rawLaptopLeftPos   = [-3, 0.2, 0.6];
-  const rawRouterLeftPos   = [-2, 0.2, -2.5];
-  const rawRouterCenterPos = [0,  0.2, -2.5];
-  const rawRouterRightPos  = [2,  0.2, -2.5];
+  const rawLaptopRightPos = [3, 0.2, 0];
+  const rawLaptopLeftPos = [-3, 0.2, 0.6];
+  const rawRouterLeftPos = [-2, 0.2, -2.5];
+  const rawRouterCenterPos = [0, 0.2, -2.5];
+  const rawRouterRightPos = [2, 0.2, -2.5];
 
   return (
     <>
-      <Model scale={5} position={rawLaptopRightPos} />
-      <Model scale={5} position={rawLaptopLeftPos} rotation-y={Math.PI} />
+      {/* <Model scale={5} position={rawLaptopRightPos} />
+      <Model scale={5} position={rawLaptopLeftPos} rotation-y={Math.PI} /> */}
 
       {/* Packet (DragableUI) — hidden during UDP OSI walkthrough */}
       {!isLayerComplete && !isUdpWalkthroughActive && (
@@ -159,17 +159,17 @@ export const Experience = ({
         />
       )}
 
-      <RouterGLB scale={0.1} position={rawRouterCenterPos} rotation-y={Math.PI} />
-      <RouterGLB scale={0.1} position={rawRouterLeftPos}   rotation-y={Math.PI} />
-      <RouterGLB scale={0.1} position={rawRouterRightPos}  rotation-y={Math.PI} />
+      {/* <RouterGLB scale={0.1} position={rawRouterCenterPos} rotation-y={Math.PI} />
+      <RouterGLB scale={0.1} position={rawRouterLeftPos} rotation-y={Math.PI} />
+      <RouterGLB scale={0.1} position={rawRouterRightPos} rotation-y={Math.PI} />
 
-      <Cable start={rawLaptopLeftPos}   end={rawRouterLeftPos}   color="#00ff88" />
-      <Cable start={rawLaptopRightPos}  end={rawRouterRightPos}  color="#00ff88" />
-      <Cable start={rawRouterLeftPos}   end={rawRouterCenterPos} color="#ffaa00" />
-      <Cable start={rawRouterRightPos}  end={rawRouterCenterPos} color="#ffaa00" />
+      <Cable start={rawLaptopLeftPos} end={rawRouterLeftPos} color="#00ff88" />
+      <Cable start={rawLaptopRightPos} end={rawRouterRightPos} color="#00ff88" />
+      <Cable start={rawRouterLeftPos} end={rawRouterCenterPos} color="#ffaa00" />
+      <Cable start={rawRouterRightPos} end={rawRouterCenterPos} color="#ffaa00" /> */}
 
       <directionalLight castShadow position={[5, 5, 2]} />
-      <Gltf src="models/tori.glb" castShadow receiveShadow />
+      {/* <Gltf src="models/tori.glb" castShadow receiveShadow /> */}
       <Combo />
       <OrbitControls makeDefault />
 
