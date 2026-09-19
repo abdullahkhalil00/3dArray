@@ -1,6 +1,9 @@
 import { Container, Root, Text } from "@react-three/uikit";
 import { Button, Card, Defaults } from "@react-three/uikit-apfel";
 import { useState, useCallback } from "react";
+import { useXR } from "@react-three/xr";
+import { store } from "../App";
+import { useSong } from "../hooks/useSong";
 
 // Generate a random 3x3x3 array with values 1-99
 function generateRandom3DArray() {
@@ -53,6 +56,11 @@ export function UI(params) {
   const [statusMsg, setStatusMsg] = useState("");
   const [swapCount, setSwapCount] = useState(0);
   const [comparisonCount, setComparisonCount] = useState(0);
+
+  const mode = useXR((state) => state.mode);
+  const session = useXR((state) => state.session);
+  const passthrough = useSong((state) => state.passthrough);
+  const setPassthrough = useSong((state) => state.setPassthrough);
 
   // Flatten helper — returns { flatIdx, i, j, k } for position n in a 3×3×3
   const flatToIJK = (n) => ({
@@ -339,8 +347,41 @@ export function UI(params) {
           alignItems="center"
           gap={16}
         >
+          
           {/* ── Action Buttons ── */}
           <Container flexDirection="row" gap={12} justifyContent="center" marginTop={0}>
+            {mode === null ? (
+            <Button
+              variant="rect"
+              size="sm"
+              platter
+              flexGrow={1}
+              onClick={() => store.enterAR()}
+            >
+              <Text>VR/AR</Text>
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="rect"
+                size="sm"
+                platter
+                flexGrow={1}
+                onClick={() => setPassthrough(!passthrough)}
+              >
+                <Text>Passthrough</Text>
+              </Button>
+              <Button
+                variant="rect"
+                size="sm"
+                platter
+                flexGrow={1}
+                onClick={() => session.end()}
+              >
+                <Text>Exit VR</Text>
+              </Button>
+            </>
+          )}
             {!sortStarted && !sortDone && (
               <Button variant="solid" size="sm" platter onClick={handleStart}>
                 <Text>Start Bubble Sort</Text>
@@ -499,6 +540,8 @@ export function UI(params) {
 
           </Card>
         </Container>
+        {/* XR Controls */}
+        
       </Root>
     </Defaults>
   );
